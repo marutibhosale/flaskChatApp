@@ -27,5 +27,13 @@ def handle_join_room_event(data):
     socketio.emit('join_room_announcement', data, room=data['room'])
 
 
+@socketio.on('send_message')
+def handle_send_message_event(data):
+    print("{} has sent message to the room {}: {}".format(data['username'],
+                                                                    data['room'],
+                                                                    data['message']))
+    socketio.emit('receive_message', data, room=data['room'])
+
+
 if __name__ == '__main__':
     socketio.run(app, debug=True)
