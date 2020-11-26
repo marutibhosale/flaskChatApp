@@ -1,9 +1,20 @@
 
 from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO, join_room, leave_room
+from flask_mysqldb import MySQL
+import os
+from datetime import datetime
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+
+
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = 'root'
+app.config['MYSQL_DB'] = 'chatapp'
+
+mysql = MySQL(app)
 
 
 @app.route('/')
@@ -32,6 +43,7 @@ def handle_send_message_event(data):
     print("{} has sent message to the room {}: {}".format(data['username'],
                                                                     data['room'],
                                                                     data['message']))
+
     socketio.emit('receive_message', data, room=data['room'])
 
 @socketio.on('leave_room')
