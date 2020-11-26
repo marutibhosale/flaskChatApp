@@ -12,7 +12,7 @@ socketio = SocketIO(app)
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'root'
-app.config['MYSQL_DB'] = 'chatapp'
+app.config['MYSQL_DB'] = 'chatApp'
 
 mysql = MySQL(app)
 
@@ -43,6 +43,33 @@ def handle_send_message_event(data):
     print("{} has sent message to the room {}: {}".format(data['username'],
                                                                     data['room'],
                                                                     data['message']))
+
+    cur = mysql.connection.cursor()
+    now = datetime.now()
+    cur.execute("CREATE TABLE IF NOT EXISTS user (id INT AUTO_INCREMENT PRIMARY KEY, \
+                                username VARCHAR(20),room INT)")
+
+    cur.execute("CREATE TABLE IF NOT EXISTS chatDetail (id INT AUTO_INCREMENT PRIMARY KEY, \
+                                        message TEXT, send_on DATETIME,user_id INT ,FOREIGN KEY(user_id) REFERENCES user (id))")
+
+    cur.execute("SELECT id from user WHERE username=%s and room=%s", (data['username'], data['room']))
+    id = cur.fetchall()
+
+    if str(id) == '()':
+        table = """INSERT INTO user (username,room) VALUES (%s,%s)"""
+        val = (data['username'], data['room'])
+        cur.execute(table, val)
+        user_id = cur.lastrowid
+        table = """INSERT INTO chatDetail (message,send_on,user_id) VALUES (%s,%s,%s)"""
+        val = (data['message'], now, user_id)
+        cur.execute(table, val)
+    else:
+        table = """INSERT INTO chatDetail (message,send_on,user_id) VALUES (%s,%s,%s)"""
+        val = (data['message'], now, id[0][0])
+        cur.execute(table, val)
+
+    mysql.connection.commit()
+    cur.close()
 
     socketio.emit('receive_message', data, room=data['room'])
 
