@@ -31,6 +31,21 @@ def chat():
     else:
         return redirect(url_for('home'))
 
+def create_tables():
+    with app.app_context():
+        cur = mysql.connection.cursor()
+        cur.execute("CREATE TABLE IF NOT EXISTS user (id INT AUTO_INCREMENT PRIMARY KEY, \
+                            username VARCHAR(20),room INT)")
+
+        cur.execute("CREATE TABLE IF NOT EXISTS chatDetail (id INT AUTO_INCREMENT PRIMARY KEY, \
+                            message TEXT, send_on DATETIME,user_id INT ,FOREIGN KEY(user_id) REFERENCES user (id))")
+
+        mysql.connection.commit()
+        cur.close()
+
+
+create_tables()
+
 @socketio.on('join_room')
 def handle_join_room_event(data):
     print("{} has joined the room {}".format(data['username'], data['room']))
@@ -46,12 +61,6 @@ def handle_send_message_event(data):
 
     cur = mysql.connection.cursor()
     now = datetime.now()
-    cur.execute("CREATE TABLE IF NOT EXISTS user (id INT AUTO_INCREMENT PRIMARY KEY, \
-                                username VARCHAR(20),room INT)")
-
-    cur.execute("CREATE TABLE IF NOT EXISTS chatDetail (id INT AUTO_INCREMENT PRIMARY KEY, \
-                                        message TEXT, send_on DATETIME,user_id INT ,FOREIGN KEY(user_id) REFERENCES user (id))")
-
     cur.execute("SELECT id from user WHERE username=%s and room=%s", (data['username'], data['room']))
     id = cur.fetchall()
 
