@@ -9,8 +9,8 @@ socketio = SocketIO(app)
 
 # database connection
 app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'root'
+app.config['MYSQL_USER'] = os.environ['user_name']
+app.config['MYSQL_PASSWORD'] = os.environ['password']
 app.config['MYSQL_DB'] = 'chatApp'
 
 mysql = MySQL(app)
